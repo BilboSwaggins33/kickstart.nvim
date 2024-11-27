@@ -1,78 +1,41 @@
--- You ca add your own plugins here or in other files in this directory!
+-- You can add your own plugins here or in other files in this directory!
 --  I promise not to create any merge conflicts in this directory :)
 --
 -- See the kickstart.nvim README for more information
 return {
-
   {
-    'kevinhwang91/nvim-ufo',
-    dependencies = 'kevinhwang91/promise-async',
-    event = 'VimEnter', -- needed for folds to load in time and comments closed
-    keys = {
-			-- stylua: ignore start
-			{ "zm", function() require("ufo").closeAllFolds() end, desc = "󱃄 Close All Folds" },
-			{ "zr", function() require("ufo").openFoldsExceptKinds { "comment", "imports" } end, desc = "󱃄 Open All Regular Folds" },
-			{ "zR", function() require("ufo").openFoldsExceptKinds {} end, desc = "󱃄 Open All Folds" },
-			{ "z1", function() require("ufo").closeFoldsWith(1) end, desc = "󱃄 Close L1 Folds" },
-			{ "z2", function() require("ufo").closeFoldsWith(2) end, desc = "󱃄 Close L2 Folds" },
-			{ "z3", function() require("ufo").closeFoldsWith(3) end, desc = "󱃄 Close L3 Folds" },
-			{ "z4", function() require("ufo").closeFoldsWith(4) end, desc = "󱃄 Close L4 Folds" },
-      -- stylua: ignore end
-    },
-    init = function()
-      -- INFO fold commands usually change the foldlevel, which fixes folds, e.g.
-      -- auto-closing them after leaving insert mode, however ufo does not seem to
-      -- have equivalents for zr and zm because there is no saved fold level.
-      -- Consequently, the vim-internal fold levels need to be disabled by setting
-      -- them to 99
-      vim.opt.foldlevel = 99
-      vim.opt.foldlevelstart = 99
+    'rachartier/tiny-inline-diagnostic.nvim',
+    event = 'VeryLazy', -- Or `LspAttach`
+    priority = 1000, -- needs to be loaded in first
+    config = function()
+      require('tiny-inline-diagnostic').setup {
+        blend = {
+          factor = 0.27,
+        },
+        options = {
+          show_source = true,
+          multilines = true,
+          show_all_diags_on_cursorline = false,
+        },
+      }
+      vim.diagnostic.config { virtual_text = false }
     end,
-    opts = {
-      provider_selector = function(_, ft, _)
-        -- INFO some filetypes only allow indent, some only LSP, some only
-        -- treesitter. However, ufo only accepts two kinds as priority,
-        -- therefore making this function necessary :/
-        local lspWithOutFolding = { 'markdown', 'sh', 'css', 'html', 'python', 'json' }
-        if vim.tbl_contains(lspWithOutFolding, ft) then
-          return { 'treesitter', 'indent' }
-        end
-        return { 'lsp', 'indent' }
-      end,
-      -- when opening the buffer, close these fold kinds
-      -- use `:UfoInspect` to get available fold kinds from the LSP
-      close_fold_kinds_for_ft = {
-        default = { 'imports', 'comment' },
-      },
-      open_fold_hl_timeout = 800,
-      fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
-        local hlgroup = 'NonText'
-        local newVirtText = {}
-        local suffix = '   ' .. tostring(endLnum - lnum)
-        local sufWidth = vim.fn.strdisplaywidth(suffix)
-        local targetWidth = width - sufWidth
-        local curWidth = 0
-        for _, chunk in ipairs(virtText) do
-          local chunkText = chunk[1]
-          local chunkWidth = vim.fn.strdisplaywidth(chunkText)
-          if targetWidth > curWidth + chunkWidth then
-            table.insert(newVirtText, chunk)
-          else
-            chunkText = truncate(chunkText, targetWidth - curWidth)
-            local hlGroup = chunk[2]
-            table.insert(newVirtText, { chunkText, hlGroup })
-            chunkWidth = vim.fn.strdisplaywidth(chunkText)
-            if curWidth + chunkWidth < targetWidth then
-              suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth)
-            end
-            break
-          end
-          curWidth = curWidth + chunkWidth
-        end
-        table.insert(newVirtText, { suffix, hlgroup })
-        return newVirtText
-      end,
-    },
+  },
+  {
+    'nvzone/timerly',
+    dependencies = { 'nvzone/volt' },
+    config = function()
+      vim.keymap.set('n', '<leader>tt', '<cmd>TimerlyToggle<CR>')
+    end,
+  },
+  {
+    'lervag/vimtex',
+    lazy = false, -- we don't want to lazy load VimTeX
+    -- tag = "v2.15", -- uncomment to pin to a specific release
+    init = function()
+      -- VimTeX configuration goes here, e.g.
+      vim.g.vimtex_view_method = 'zathura'
+    end,
   },
   {
     'kawre/leetcode.nvim',
@@ -117,11 +80,60 @@ return {
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
+      local function get_timerly_status()
+        local state = require 'timerly.state'
+        if state.progress == 0 then
+          return ''
+        end
+
+        local total = math.max(0, state.total_secs + 1) -- Add 1 to sync with timer display
+        local mins = math.floor(total / 60)
+        local secs = total % 60
+
+        return string.format('%s %02d:%02d', state.mode:gsub('^%l', string.upper), mins, secs)
+      end
+
       require('lualine').setup {
+
         options = {
-          component_separators = { left = '', right = '' },
-          section_separators = { left = '', right = '' },
+          icons_enabled = true,
+          theme = 'auto',
+          component_separators = { left = ' ', right = ' ' },
+          section_separators = { left = ' ', right = ' ' },
+          disabled_filetypes = {
+            statusline = {},
+            winbar = {},
+          },
+          ignore_focus = {},
+          always_divide_middle = true,
+          always_show_tabline = true,
+          globalstatus = false,
+          refresh = {
+            statusline = 100,
+            tabline = 100,
+            winbar = 100,
+          },
         },
+        sections = {
+          lualine_a = { 'mode' },
+          lualine_b = { 'branch', 'diff', 'diagnostics' },
+          lualine_c = { 'filename' },
+          lualine_x = { get_timerly_status, 'encoding', 'fileformat', 'filetype' },
+          lualine_y = { 'progress' },
+          lualine_z = { 'location' },
+        },
+        inactive_sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { 'filename' },
+          lualine_x = { 'location' },
+          lualine_y = {},
+          lualine_z = {},
+        },
+        tabline = {},
+        winbar = {},
+        inactive_winbar = {},
+        extensions = {},
       }
     end,
   },
@@ -173,24 +185,6 @@ return {
           borderchars = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' },
         },
       }
-    end,
-  },
-  {
-    'karb94/neoscroll.nvim',
-    config = function()
-      require('neoscroll').setup {
-        mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>' },
-        stop_eof = false,
-        cursor_scrolls_alone = true,
-        hide_cursor = false,
-        performance_mode = false,
-      }
-      local t = {}
-      t['<C-u>'] = { 'scroll', { '-vim.wo.scroll', 'true', '100' } }
-      t['<C-d>'] = { 'scroll', { 'vim.wo.scroll', 'true', '100' } }
-      t['<C-b>'] = { 'scroll', { '-vim.api.nvim_win_get_height(0)', 'true', '150' } }
-      t['<C-f>'] = { 'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '150' } }
-      require('neoscroll.config').set_mappings(t)
     end,
   },
   { 'mhinz/vim-startify' },

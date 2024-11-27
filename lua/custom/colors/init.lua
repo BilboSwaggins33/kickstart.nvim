@@ -7,6 +7,7 @@ return {
       require('tokyonight').setup {
         style = 'storm', -- The theme comes in three styles, `storm`, `moon`, a darker variant `night` and `day`
         terminal_colors = true, -- Configure the colors used when opening a `:terminal` in [Neovim](https://github.com/neovim/neovim)
+        transparent = true,
         styles = {
           comments = { italic = true },
           keywords = { italic = true },
@@ -102,6 +103,7 @@ return {
     priority = 1000,
     config = function()
       require('catppuccin').setup {
+        transparent_background = true,
         highlight_overrides = {
           mocha = function(mocha)
             return {
@@ -134,7 +136,10 @@ return {
     priority = 1000,
     config = function()
       require('rose-pine').setup {
-        variant = 'moon',
+        variant = 'auto',
+        styles = {
+          transparency = true,
+        },
         highlight_groups = {
           TelescopeBorder = { fg = 'overlay', bg = 'overlay' },
           TelescopeNormal = { fg = 'subtle', bg = 'overlay' },
@@ -165,11 +170,10 @@ return {
     config = function()
       -- Optionally configure and load the colorscheme
       -- directly inside the plugin declaration.
+      vim.g.gruvbox_material_background = 'soft'
+      -- vim.g.gruvbox_material_transparent_background = 2
       vim.g.gruvbox_material_enable_italic = true
-      vim.g.gruvbox_material_background = 'hard'
-      -- 'soft medium hard'
-      vim.g.gruvbox_material_foreground = 'material'
-      --'material mix original'
+      vim.g.gruvbox_material_enable_bold = 1
     end,
   },
   {
@@ -228,7 +232,7 @@ return {
       -- 'kanagawa-wave', 'kanagawa-dragon'.
       -- 'neofusion', 'mellow'
       -- 'gruvbox-material'
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'gruvbox-material'
       vim.cmd.hi 'Comment gui=none'
     end,
   },
