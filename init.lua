@@ -43,7 +43,7 @@ reference for how Neovim integrates Lua.
 
 Kickstart Guide:
 
-TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
+ TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
 
 If you don't know what this means, type the following:
 - <escape key>
@@ -94,13 +94,6 @@ vim.keymap.set('n', '<leader>-', function()
   vim.cmd [[ lua require('oil').open()]]
 end)
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle, { desc = 'Toggle Undotree' })
--- vim.cmd [[
--- if exists('+termguicolors')
---  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
---  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
---  set termguicolors
---endif]]
--- vim.cmd [[set termguicolors]]
 vim.o.termguicolors = true
 vim.b.org_indent_mode = true
 vim.b.org_hide_leading_stars = true
@@ -182,8 +175,11 @@ vim.opt.inccommand = 'split'
 -- Show which line your cursor is on
 vim.opt.cursorline = true
 
+-- Keep cursor a block in all modes
+vim.opt.guicursor = 'n-v-i-c:block-Cursor'
+
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 8
+vim.opt.scrolloff = 2
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -432,13 +428,18 @@ require('lazy').setup({
             local tail = require('telescope.utils').path_tail(path)
             return string.format('%s (%s)', tail, path), { { { 1, #tail }, 'Constant' } }
           end,
-        },
-        pickers = { find_files = { hidden = true } },
-        extensions = {
-          ['ui-select'] = {
-            require('telescope.themes').get_dropdown(),
+          layout_config = {
+            horizontal = {
+              prompt_position = 'top',
+            },
           },
         },
+        pickers = { find_files = { hidden = true } },
+        -- extensions = {
+        --   ['ui-select'] = {
+        --     require('telescope.themes').get_dropdown(),
+        --   },
+        -- },
       }
 
       -- Enable Telescope extensions if they are installed
@@ -462,7 +463,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to Telescope to change the theme, layout, etc.
         builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
+          -- winblend = 10,
           previewer = false,
         })
       end, { desc = '[/] Fuzzily search in current buffer' })
@@ -740,6 +741,7 @@ require('lazy').setup({
                 'pspell',
                 'pthreads',
                 'radius',
+                'Random',
                 'rar',
                 'rdkafka',
                 'readline',

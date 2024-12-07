@@ -4,6 +4,22 @@
 -- See the kickstart.nvim README for more information
 return {
   {
+    'petertriho/nvim-scrollbar',
+    dependencies = { 'lewis6991/gitsigns.nvim' },
+    config = function()
+      require('scrollbar').setup {}
+    end,
+  },
+  {
+    'letieu/harpoon-lualine',
+    dependencies = {
+      {
+        'ThePrimeagen/harpoon',
+        branch = 'harpoon2',
+      },
+    },
+  },
+  {
     'rachartier/tiny-inline-diagnostic.nvim',
     event = 'VeryLazy', -- Or `LspAttach`
     priority = 1000, -- needs to be loaded in first
@@ -117,8 +133,21 @@ return {
         sections = {
           lualine_a = { 'mode' },
           lualine_b = { 'branch', 'diff', 'diagnostics' },
-          lualine_c = { 'filename' },
-          lualine_x = { get_timerly_status, 'encoding', 'fileformat', 'filetype' },
+          lualine_c = {
+            'filename',
+          },
+          lualine_x = {
+            get_timerly_status,
+            {
+              'harpoon2',
+              indicators = { 'h', 'j', 'k', 'l' },
+              active_indicators = { 'h', 'j', 'k', 'l' },
+              color_active = { fg = '#a9b665' },
+            },
+            'encoding',
+            'fileformat',
+            'filetype',
+          },
           lualine_y = { 'progress' },
           lualine_z = { 'location' },
         },
@@ -152,39 +181,40 @@ return {
   { 'mbbill/undotree' },
   {
     'ThePrimeagen/harpoon',
+    branch = 'harpoon2',
     dependencies = { 'nvim-lua/plenary.nvim' },
 
     config = function()
-      local mark = require 'harpoon.mark'
-      local ui = require 'harpoon.ui'
-
-      vim.keymap.set('n', '<leader>a', mark.add_file)
-      vim.keymap.set('n', '<C-e>', ui.toggle_quick_menu)
-
-      vim.keymap.set('n', '<leader>1', function()
-        ui.nav_file(1)
+      local harpoon = require 'harpoon'
+      vim.keymap.set('n', '<C-e>', function()
+        harpoon.ui:toggle_quick_menu(harpoon:list())
       end)
-      vim.keymap.set('n', '<leader>2', function()
-        ui.nav_file(2)
+      vim.keymap.set('n', '<leader>a', function()
+        harpoon:list():add()
       end)
-      vim.keymap.set('n', '<leader>3', function()
-        ui.nav_file(3)
-      end)
-      vim.keymap.set('n', '<leader>4', function()
-        ui.nav_file(4)
-      end)
-      vim.keymap.set('n', '<leader>5', function()
-        ui.nav_file(5)
-      end)
-      vim.keymap.set('n', '<leader>6', function()
-        ui.nav_file(6)
-      end)
-
-      require('harpoon').setup {
+      harpoon:setup {
+        global_settings = {
+          tabline = true,
+        },
         menu = {
           borderchars = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' },
         },
       }
+      vim.keymap.set('n', '<leader>a', function()
+        harpoon:list():add()
+      end)
+      vim.keymap.set('n', '<C-h>', function()
+        harpoon:list():select(1)
+      end)
+      vim.keymap.set('n', '<C-j>', function()
+        harpoon:list():select(2)
+      end)
+      vim.keymap.set('n', '<C-k>', function()
+        harpoon:list():select(3)
+      end)
+      vim.keymap.set('n', '<C-l>', function()
+        harpoon:list():select(4)
+      end)
     end,
   },
   { 'mhinz/vim-startify' },
