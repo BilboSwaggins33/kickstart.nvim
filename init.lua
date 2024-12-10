@@ -637,6 +637,9 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         ts_ls = {},
         intelephense = {
+          init_options = {
+            globalStoragePath = os.getenv 'HOME' .. '/.local/share/intelephense',
+          },
           settings = {
             intelephense = {
               stubs = {
@@ -741,7 +744,7 @@ require('lazy').setup({
                 'pspell',
                 'pthreads',
                 'radius',
-                'Random',
+                'random',
                 'rar',
                 'rdkafka',
                 'readline',
